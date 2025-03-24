@@ -10,7 +10,7 @@ CORS(app)
 
 # Load environment variables
 load_dotenv()
-api_key = os.getenv("OPENROUTER_API_KEY")
+api_key= os.getenv("OPENROUTER_API_KEY")
 SECRET_KEY = os.environ.get("SECRET_KEY")
 
 MODEL_NAME = "deepseek/deepseek-r1"
