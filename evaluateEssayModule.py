@@ -38,21 +38,27 @@ def evaluate_essay():
             score_penalty = round(missing_words / 20, 1)  # Deduct 0.5 per 10 words missing
             score_penalty = min(score_penalty, 3)  # Max deduction is 3 points
             length_feedback = (
-                f"Your essay is too short ({word_count} words). Aim for {min_words}-{max_words} words. "
-                f"Due to the short length, a penalty of {score_penalty} points will be applied."
+                f"Your essay is too short ({word_count} words). You must write at least {min_words} words. "
+                f"A penalty of {score_penalty} points has been applied."
+            )
+        elif word_count > max_words:
+            score_penalty = 1  # Small penalty for exceeding limit
+            length_feedback = (
+                f"Your essay exceeds the {max_words}-word limit ({word_count} words). "
+                f"A minor penalty of {score_penalty} points has been applied."
             )
         else:
             score_penalty = 0
             length_feedback = ""
 
-        # Modify prompt to strictly enforce word count
+        # Stronger prompt to enforce strict word limit feedback
         prompt = (
             f"Evaluate the student's essay based on coherence, structure, grammar, vocabulary, and argument strength. "
-            f"The essay should be between {min_words}-{max_words} words. "
-            f"If the essay is shorter, explicitly mention it and adjust the score accordingly. "
-            f"Provide detailed feedback in exactly five lines as a single paragraph. "
-            f"The last sentence must state 'Overall Score: X/10' with a number. "
-            f"Do not omit the score under any circumstances.\n\n"
+            f"The essay should strictly be between {min_words}-{max_words} words. "
+            f"If the essay is shorter, deduct points and clearly mention that it does not meet the requirement. "
+            f"Provide feedback in exactly five lines, ensuring clear feedback on all aspects. "
+            f"At the end, state: 'Overall Score: X/10' where X is the calculated score. "
+            f"Do NOT omit the score under any circumstances.\n\n"
             f"Student's Essay ({word_count} words): \"{student_essay}\"\n\n"
             f"Feedback:"
         )
@@ -83,18 +89,23 @@ def evaluate_essay():
         if ai_feedback:
             # Extract AI-generated score
             match = re.search(r'Overall Score:\s*([\d.]+)/10', ai_feedback)
-            ai_score = float(match.group(1)) if match else None  
-
-            if ai_score is not None:
-                # Apply penalty dynamically if essay is too short
-                final_score = max(1, ai_score - score_penalty)  # Ensure score is at least 1
+            if match:
+                ai_score = float(match.group(1))
             else:
-                final_score = "Not Provided"
+                ai_score = 5  # Default to 5 if AI fails to provide a score
+
+            # Apply penalty dynamically
+            final_score = max(1, ai_score - score_penalty)  # Ensure score is at least 1
 
             # Append word count feedback to AI's response
             final_feedback = ai_feedback
             if length_feedback:
                 final_feedback += f" {length_feedback}"
+
+            # Debugging log
+            print("AI Feedback:", ai_feedback)
+            print("Extracted Score:", ai_score)
+            print("Final Score after Penalty:", final_score)
 
             return jsonify({
                 "feedback": final_feedback,
