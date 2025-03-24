@@ -35,7 +35,7 @@ def evaluate_essay():
         )
 
         headers = {
-            "Authorization": f"Bearer {api_key}",
+            "Authorization": f"Bearer {SECRET_KEY}",
             "Content-Type": "application/json"
         }
         payload = {
